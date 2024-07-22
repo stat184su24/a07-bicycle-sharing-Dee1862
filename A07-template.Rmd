@@ -1,6 +1,6 @@
 ---
 title: "A06- ggplot"
-author: "YOUR NAME"
+author: "Deekshith Reddy Bhoomireddy"
 date: "DATE"
 output: html_notebook
 ---
@@ -69,7 +69,7 @@ When you make your plot, you will likely find that the axis range is being set b
 
 ```{r}
 ### Your code here
-
+as.numeric(edate - sdate)
 
 ```
 
