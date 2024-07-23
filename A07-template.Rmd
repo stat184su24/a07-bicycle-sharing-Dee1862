@@ -1,7 +1,7 @@
 ---
-title: "A06- ggplot"
+title: "A07- ggplot"
 author: "Deekshith Reddy Bhoomireddy"
-date: "DATE"
+date: "23 July, 2024"
 output: html_notebook
 ---
 
@@ -68,8 +68,12 @@ When you make your plot, you will likely find that the axis range is being set b
 
 
 ```{r}
-### Your code here
-as.numeric(edate - sdate)
+Trips %>%
+  mutate(duration = as.numeric(edate - sdate)/60) %>% #The duration of rental divided by 60.
+  filter(duration <= 60) %>% #Removing outliers
+  ggplot(aes(x = client, y = duration)) +
+  geom_boxplot(outlier.size = 2, outlier.color = "black") +
+  labs(y = "dur/60", x = "client")
 
 ```
 
@@ -103,46 +107,72 @@ You can use [Figure 18.3](https://dtkaplan.github.io/DataComputingEbook/project-
 
 ```{r}
 ### Your Code Here
+Trips %>%
+  mutate(day_of_year = lubridate::yday(sdate)) %>%
+  ggplot(aes(x = day_of_year)) + 
+  geom_density(color = "black", fill = "gray") + 
+  labs(x = "DOY")
+
 
 ```
 
 
 My observations here..... 
+This density plot shows the bike use over day of the year. The peaks indicate the days with significantly high bike rentals, potentially due to favorable weather conditions and holidays. The troughs indicate the days of significantly high bike rentals, possible due to unfavorable weather conditions and other similar reasons.
 
 
 ### Day of Week
 
 ```{r}
 ### Your Code Here
+Trips %>%
+  mutate(day_of_week = lubridate::wday(sdate)) %>%
+  ggplot(aes(x = day_of_week)) + 
+  geom_density(color = "black", fill = "gray") + 
+  labs(x = "DOW")
 
 ```
 
 
 My observations here..... 
-
+This uniform pattern in the above density graph suggest that people may be using bikes alternative days. The peaks are the days when there is a significant amount of increase in the bike usage. The troughs are the days when people are less significantly using the bikes.
 
 
 ### Hour of Day
 
 ```{r}
 ### Your Code Here
+Trips %>%
+  mutate(hour_of_year = lubridate::hour(sdate)) %>%
+  ggplot(aes(x = hour_of_year)) + 
+  geom_density(color = "black", fill = "gray") + 
+  labs(x = "H")
+
+
+  
 
 ```
 
 
 My observations here..... 
-
+This density graph has peaks during the morning (8:00 AM to 9:00 AM) and in the evening (5:00 PM to 6:00 PM) indicating that people are mostly renting bikes during these hours. Moreover, the after noon timings show a light peak meaning that people are possibly using bikes during the lunch break. However, there is troughs during early morning (1:00 AM to 5:00 AM) and before the afternoon (9:00 AM to 11:00 AM) indicating that most of the people do not rent bikes during these timings.
 
 
 ### Minute of Hour
 
 ```{r}
 ### Your Code Here
+Trips %>%
+  mutate(minutes_of_hour = lubridate::minutes(sdate)) %>%
+  ggplot(aes(x = minutes_of_hour)) + 
+  geom_density(color = "black", fill = "gray") + 
+  labs(x = "MOH")
 
 ```
 
 
 My observations here..... 
+This density graph of minutes of hour has multiple peaks and troughs indicting that the usage of bikes in an hour is non-uniform. This possible means that people rent bikes according to their need without any particular thought or preference about the specific minute of an hour.
 
 
 ## Question 3: Grouping
@@ -151,10 +181,20 @@ Group the bike rentals by three variables: hour of the day, day of the week, and
 
 ```{r}
 ### My Code here
+Trips %>%
+  mutate(hour_of_day = lubridate::hour(sdate), day_of_week = lubridate::wday(sdate)) %>%
+  group_by(hour_of_day, day_of_week, client) %>%
+  summarise(count = n(), .groups = "drop") %>%
+  ggplot(aes(x = hour_of_day, y = count, color = client)) +
+  geom_line() +
+  facet_wrap(~ day_of_week) +
+  labs(x = "Hour of Day", y = "Count of Trips", title = "Bike Rentals")
+
 
 ```
 
 My comments here.....
+The registered client were renting the bicycles more hours of day than the casual clients. The plots for each weekday is almost similar with peaks for registered clients during the morning and evening hours. Similarly, the plots of each weekend is almost similar with a mostly uniform curve and a peak for registered clients during the mid-day. Whereas, the curves and patterns of the casual clients is almost similar with no peaks and less movement.
 
 
 ## Question 4: How Far? 
@@ -214,6 +254,30 @@ Our goal here is to recreate [Figure 18.5](https://dtkaplan.github.io/DataComput
 
 ```{r}
 ### My code here
+#Join the "PairDistances" with "Trips" dataset.
+TripsDistances <- 
+  Trips %>%
+  left_join(PairDistances, by = c("sstation", "estation"))
+
+#The ride distance
+data1 <- 
+  TripsDistances %>%
+  filter(is.finite(distance), distance <= 15) %>%
+  select(distance) %>%
+  mutate(type = "Ride Distance")
+
+#The station distance
+data2 <- 
+  PairDistances %>%
+  filter(is.finite(distance), distance <= 15) %>%
+  select(distance) %>%
+  mutate(type = "Station Distance")
+
+#Plot the graph
+ggplot(combined_data) +
+  geom_density(data = data1, aes(x = distance), color = "blue", fill = NA) +
+  geom_density(data = data2, aes(x = distance), color = NA, fill = "red", alpha = 0.15) +
+  labs(x = "Trip Distance (km)", y = "density")
 
 ```
 
@@ -225,6 +289,8 @@ Our goal here is to recreate [Figure 18.5](https://dtkaplan.github.io/DataComput
 Look at the variables in `Stations` and `Trips` and explain why `Simple` and `Simple2` were given different variable names for the station. 
 
 Optional Extra credit answer here.....
+
+This was done to ensure clarity and facilitate accurate analysis of distances between the stations. This step was essential to maintain the readability and easily analysis of the dataset.
 
 
 
