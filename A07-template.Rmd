@@ -182,9 +182,11 @@ Group the bike rentals by three variables: hour of the day, day of the week, and
 ```{r}
 ### My Code here
 Trips %>%
+  #mutate, group and summarize the dataset
   mutate(hour_of_day = lubridate::hour(sdate), day_of_week = lubridate::wday(sdate)) %>%
   group_by(hour_of_day, day_of_week, client) %>%
   summarise(count = n(), .groups = "drop") %>%
+  #plot graph
   ggplot(aes(x = hour_of_day, y = count, color = client)) +
   geom_line() +
   facet_wrap(~ day_of_week) +
